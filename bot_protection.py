@@ -6,6 +6,11 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 import os
 import platform
+import logging
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class AdvancedProtectionHandler:
     def __init__(self, api_key=None):
@@ -20,6 +25,8 @@ class AdvancedProtectionHandler:
         """
         Find Chrome/Chromium binary location based on the operating system
         """
+        logger.info("Поиск браузера в системе...")
+
         if platform.system() == 'Windows':
             paths = [
                 os.path.expandvars(r"%ProgramFiles%\Google\Chrome\Application\chrome.exe"),
@@ -28,6 +35,7 @@ class AdvancedProtectionHandler:
             ]
         else:  # Linux/Unix
             paths = [
+                '/nix/store/zi4f80l169xlmivz8vja8wlphq74qqk0-chromium-125.0.6422.141/bin/chromium',  # Путь в Replit
                 '/usr/bin/chromium',
                 '/usr/bin/chromium-browser',
                 '/usr/bin/google-chrome',
@@ -36,29 +44,36 @@ class AdvancedProtectionHandler:
 
         for path in paths:
             if os.path.exists(path):
-                print(f"Found browser at: {path}")
+                logger.info(f"Найден браузер: {path}")
                 return path
 
-        raise Exception("Chrome/Chromium не найден. Пожалуйста, установите браузер для работы программы.")
+        error_msg = "Chrome/Chromium не найден. Пожалуйста, убедитесь, что браузер установлен."
+        logger.error(error_msg)
+        raise Exception(error_msg)
 
     def init_browser(self, headless=True):
         """
         Initialize undetected-chromedriver for Cloudflare bypass
         """
         try:
-            print(f"Инициализация браузера с binary_location: {self.chrome_binary}")
+            logger.info(f"Инициализация браузера с binary_location: {self.chrome_binary}")
+
             options = uc.ChromeOptions()
             if headless:
                 options.add_argument('--headless')
             options.add_argument('--no-sandbox')
             options.add_argument('--disable-gpu')
+            options.add_argument('--disable-dev-shm-usage')
             options.binary_location = self.chrome_binary
 
             self.driver = uc.Chrome(options=options)
+            logger.info("Браузер успешно инициализирован")
             return self.driver
+
         except Exception as e:
-            print(f"Ошибка при инициализации браузера: {str(e)}")
-            raise Exception(f"Не удалось запустить браузер. Убедитесь, что Chrome/Chromium установлен корректно: {str(e)}")
+            error_msg = f"Ошибка при инициализации браузера: {str(e)}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
 
     def solve_captcha(self, site_key, page_url):
         """
@@ -74,7 +89,7 @@ class AdvancedProtectionHandler:
             )
             return result.get('code')
         except Exception as e:
-            print(f"Error solving CAPTCHA: {str(e)}")
+            logger.error(f"Error solving CAPTCHA: {str(e)}")
             return None
 
     def handle_cloudflare(self, url, timeout=30):
@@ -93,7 +108,9 @@ class AdvancedProtectionHandler:
             time.sleep(5)  # Additional wait to ensure JavaScript execution
             return self.driver.page_source
         except Exception as e:
-            raise Exception(f"Ошибка при обходе защиты Cloudflare: {str(e)}")
+            error_msg = f"Ошибка при обходе защиты Cloudflare: {str(e)}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
 
     def handle_recaptcha(self, url, site_key):
         """
@@ -117,7 +134,9 @@ class AdvancedProtectionHandler:
             self.driver.execute_script(script)
             return self.driver.page_source
         except Exception as e:
-            raise Exception(f"Ошибка при решении капчи: {str(e)}")
+            error_msg = f"Ошибка при решении капчи: {str(e)}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
 
     def cleanup(self):
         """
