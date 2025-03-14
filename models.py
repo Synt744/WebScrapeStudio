@@ -8,8 +8,11 @@ class ScrapingConfig:
     url_pattern: str
     selectors: dict
     use_selenium: bool = False
-    headers: dict = None
-    proxy: str = None
+    headers: Optional[dict] = None
+    proxy: Optional[str] = None
+    handle_cloudflare: bool = False
+    captcha_api_key: Optional[str] = None
+    captcha_site_key: Optional[str] = None
 
 @dataclass
 class Product:
@@ -20,7 +23,7 @@ class Product:
     url: str
     marketplace: str
     created_at: datetime
-    
+
     @staticmethod
     def create_table(conn: sqlite3.Connection):
         cursor = conn.cursor()

@@ -56,6 +56,7 @@ class ScraperGUI:
         self.root.configure(bg="#1e1e1e")
 
         self.config_manager = ConfigManager()
+        self.captcha_api_key = None
         self.create_widgets()
 
         # Apply transparency
@@ -123,8 +124,27 @@ class ScraperGUI:
         options_frame = ttk.LabelFrame(scraping_frame, text="Options", padding=10)
         options_frame.pack(fill='x', padx=10, pady=5)
 
+        # Selenium checkbox
         self.use_selenium = tk.BooleanVar()
-        ttk.Checkbutton(options_frame, text="Use Selenium", variable=self.use_selenium).pack()
+        ttk.Checkbutton(options_frame, text="Use Selenium", variable=self.use_selenium).pack(anchor='w')
+
+        # Cloudflare protection
+        self.handle_cloudflare = tk.BooleanVar()
+        ttk.Checkbutton(options_frame, text="Handle Cloudflare Protection", 
+                       variable=self.handle_cloudflare).pack(anchor='w')
+
+        # CAPTCHA frame
+        captcha_frame = ttk.Frame(options_frame)
+        captcha_frame.pack(fill='x', pady=5)
+
+        ttk.Label(captcha_frame, text="2Captcha API Key:").pack(anchor='w')
+        self.captcha_key_entry = self.create_styled_entry(captcha_frame)
+        self.captcha_key_entry.pack(fill='x', pady=(0, 5))
+
+        ttk.Label(captcha_frame, text="Site CAPTCHA Key:").pack(anchor='w')
+        self.site_key_entry = self.create_styled_entry(captcha_frame)
+        self.site_key_entry.pack(fill='x')
+
 
         # Control buttons
         buttons_frame = ttk.Frame(scraping_frame)
@@ -175,7 +195,10 @@ class ScraperGUI:
         config = ScrapingConfig(
             url_pattern=self.url_pattern.get(),
             selectors={field: entry.get() for field, entry in self.selector_entries.items()},
-            use_selenium=self.use_selenium.get()
+            use_selenium=self.use_selenium.get(),
+            handle_cloudflare=self.handle_cloudflare.get(),
+            captcha_api_key=self.captcha_key_entry.get() or None,
+            captcha_site_key=self.site_key_entry.get() or None
         )
         self.config_manager.add_marketplace(name, config)
         messagebox.showinfo("Success", "Configuration saved successfully!")
@@ -189,7 +212,10 @@ class ScraperGUI:
         config = ScrapingConfig(
             url_pattern=self.url_pattern.get(),
             selectors={field: entry.get() for field, entry in self.selector_entries.items()},
-            use_selenium=self.use_selenium.get()
+            use_selenium=self.use_selenium.get(),
+            handle_cloudflare=self.handle_cloudflare.get(),
+            captcha_api_key=self.captcha_key_entry.get() or None,
+            captcha_site_key=self.site_key_entry.get() or None
         )
 
         def scrape_thread():
