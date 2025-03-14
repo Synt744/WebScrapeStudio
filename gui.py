@@ -153,9 +153,33 @@ class ScraperGUI:
         buttons_frame = ttk.Frame(scraping_frame)
         buttons_frame.pack(fill='x', padx=10, pady=10)
 
-        ttk.Button(buttons_frame, text="Start Scraping", command=self.start_scraping).pack(side='left', padx=5)
-        ttk.Button(buttons_frame, text="Save Config", command=self.save_config).pack(side='left', padx=5)
-        ttk.Button(buttons_frame, text="Анализ сайта", command=self.analyze_site).pack(side='left', padx=5)
+        # Создаем стиль для основных кнопок
+        self.style.configure("Action.TButton",
+            background="#007acc",
+            foreground="#ffffff",
+            padding=[15, 8],
+            font=('Segoe UI', 10, 'bold')
+        )
+        self.style.map("Action.TButton",
+            background=[("active", "#0098ff")],
+            foreground=[("active", "#ffffff")]
+        )
+
+        # Основные кнопки управления
+        ttk.Button(buttons_frame, 
+                  text="Начать парсинг", 
+                  command=self.start_scraping,
+                  style="Action.TButton").pack(side='left', padx=5)
+
+        ttk.Button(buttons_frame, 
+                  text="Анализ страницы", 
+                  command=self.analyze_site,
+                  style="Action.TButton").pack(side='left', padx=5)
+
+        ttk.Button(buttons_frame, 
+                  text="Сохранить настройки", 
+                  command=self.save_config,
+                  style="Action.TButton").pack(side='left', padx=5)
 
         # Progress bar
         self.progress = ttk.Progressbar(scraping_frame, mode='determinate')
