@@ -13,4 +13,5 @@ dependencies = [
     "trafilatura>=2.0.0",
     "twocaptcha>=0.0.1",
     "undetected-chromedriver>=3.5.5",
+    "pyinstaller>=6.5.0",
 ]
