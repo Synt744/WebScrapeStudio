@@ -16,46 +16,8 @@ class ScraperGUI:
         self.root.title("Marketplace Scraper")
         self.root.geometry("800x600")
 
-        # Set dark theme
-        self.style = ttk.Style()
-        self.style.theme_use('clam')  # Using clam as base theme
-
-        # Configure dark theme colors
-        self.style.configure(".",
-            background="#1e1e1e",
-            foreground="#ffffff",
-            fieldbackground="#2d2d2d",
-            troughcolor="#2d2d2d",
-            selectbackground="#007acc",
-            selectforeground="#ffffff"
-        )
-
-        # Configure specific widget styles
-        self.style.configure("TFrame", background="#1e1e1e")
-        self.style.configure("TNotebook", background="#1e1e1e", borderwidth=0)
-        self.style.configure("TNotebook.Tab",
-            background="#2d2d2d",
-            foreground="#ffffff",
-            padding=[10, 5],
-            borderwidth=0
-        )
-        self.style.map("TNotebook.Tab",
-            background=[("selected", "#007acc")],
-            foreground=[("selected", "#ffffff")]
-        )
-        self.style.configure("TButton",
-            background="#007acc",
-            foreground="#ffffff",
-            padding=[10, 5],
-            borderwidth=0
-        )
-        self.style.map("TButton",
-            background=[("active", "#0098ff")],
-            foreground=[("active", "#ffffff")]
-        )
-
-        # Configure root window
-        self.root.configure(bg="#1e1e1e")
+        # Style configuration
+        self.setup_styles()
 
         self.config_manager = ConfigManager()
         self.captcha_api_key = None
@@ -64,6 +26,31 @@ class ScraperGUI:
 
         # Apply transparency
         self.root.attributes('-alpha', 0.95)
+
+    def setup_styles(self):
+        self.style = ttk.Style()
+        self.style.theme_use('clam')
+
+        # Configure dark theme colors
+        self.style.configure(".",
+            background="#1e1e1e",
+            foreground="#ffffff",
+            fieldbackground="#2d2d2d"
+        )
+
+        # Configure button style
+        self.style.configure("Custom.TButton",
+            background="#007acc",
+            foreground="#ffffff",
+            padding=[20, 10],
+            font=('Segoe UI', 11, 'bold'),
+            borderwidth=2,
+            relief="raised"
+        )
+        self.style.map("Custom.TButton",
+            background=[("active", "#0098ff")],
+            foreground=[("active", "#ffffff")]
+        )
 
     def create_styled_entry(self, parent, width=50):
         entry = tk.Entry(parent, width=width,
@@ -88,135 +75,52 @@ class ScraperGUI:
         return text
 
     def create_widgets(self):
-        # Notebook for tabs
-        notebook = ttk.Notebook(self.root)
-        notebook.pack(expand=True, fill='both', padx=10, pady=10)
+        # Main container
+        main_container = ttk.Frame(self.root, padding="10")
+        main_container.pack(fill=tk.BOTH, expand=True)
 
-        # Scraping tab
-        scraping_frame = ttk.Frame(notebook)
-        notebook.add(scraping_frame, text='Scraping')
+        # URL Frame
+        url_frame = ttk.LabelFrame(main_container, text="Настройки URL", padding="10")
+        url_frame.pack(fill=tk.X, pady=(0, 10))
 
-        # Configuration section
-        title_label = ttk.Label(scraping_frame, text="Marketplace Configuration",
-                              font=('Segoe UI', 12, 'bold'))
-        title_label.pack(pady=10)
+        ttk.Label(url_frame, text="URL Pattern:").pack(anchor=tk.W)
+        self.url_pattern = self.create_styled_entry(url_frame)
+        self.url_pattern.pack(fill=tk.X, pady=(0, 10))
 
-        config_frame = ttk.Frame(scraping_frame)
-        config_frame.pack(fill='x', padx=10)
+        ttk.Label(url_frame, text="URLs (по одному на строку):").pack(anchor=tk.W)
+        self.urls_text = self.create_styled_text(url_frame)
+        self.urls_text.pack(fill=tk.X)
 
-        ttk.Label(config_frame, text="URL Pattern:").pack()
-        self.url_pattern = self.create_styled_entry(config_frame)
-        self.url_pattern.pack(pady=(0, 10))
+        # Buttons Frame
+        buttons_frame = ttk.Frame(main_container)
+        buttons_frame.pack(fill=tk.X, pady=20)
 
-        ttk.Label(config_frame, text="URLs (one per line):").pack()
-        self.urls_text = self.create_styled_text(config_frame)
-        self.urls_text.pack(fill='x', pady=(0, 10))
+        # Create main action buttons with custom style
+        self.create_button(buttons_frame, "Начать парсинг", self.start_scraping)
+        self.create_button(buttons_frame, "Анализ страницы", self.analyze_site)
+        self.create_button(buttons_frame, "Сохранить настройки", self.save_config)
 
-        # Selectors frame
-        selectors_frame = ttk.LabelFrame(scraping_frame, text="Selectors", padding=10)
-        selectors_frame.pack(fill='x', padx=10, pady=5)
+        # Options Frame
+        options_frame = ttk.LabelFrame(main_container, text="Дополнительные настройки", padding="10")
+        options_frame.pack(fill=tk.X, pady=(0, 10))
 
-        self.selector_entries = {}
-        for field in ['name', 'price', 'description']:
-            ttk.Label(selectors_frame, text=f"{field.title()} Selector:").pack()
-            entry = self.create_styled_entry(selectors_frame)
-            entry.pack(pady=(0, 10))
-            self.selector_entries[field] = entry
-
-        # Options frame
-        options_frame = ttk.LabelFrame(scraping_frame, text="Options", padding=10)
-        options_frame.pack(fill='x', padx=10, pady=5)
-
-        # Selenium checkbox
+        # Add checkboxes and other options
         self.use_selenium = tk.BooleanVar()
-        ttk.Checkbutton(options_frame, text="Use Selenium", variable=self.use_selenium).pack(anchor='w')
-
-        # Cloudflare protection
         self.handle_cloudflare = tk.BooleanVar()
-        ttk.Checkbutton(options_frame, text="Handle Cloudflare Protection", 
-                       variable=self.handle_cloudflare).pack(anchor='w')
 
-        # CAPTCHA frame
-        captcha_frame = ttk.Frame(options_frame)
-        captcha_frame.pack(fill='x', pady=5)
-
-        ttk.Label(captcha_frame, text="2Captcha API Key:").pack(anchor='w')
-        self.captcha_key_entry = self.create_styled_entry(captcha_frame)
-        self.captcha_key_entry.pack(fill='x', pady=(0, 5))
-
-        ttk.Label(captcha_frame, text="Site CAPTCHA Key:").pack(anchor='w')
-        self.site_key_entry = self.create_styled_entry(captcha_frame)
-        self.site_key_entry.pack(fill='x')
-
-
-        # Control buttons
-        buttons_frame = ttk.Frame(scraping_frame)
-        buttons_frame.pack(fill='x', padx=10, pady=10)
-
-        # Создаем стиль для основных кнопок
-        self.style.configure("Action.TButton",
-            background="#007acc",
-            foreground="#ffffff",
-            padding=[15, 8],
-            font=('Segoe UI', 10, 'bold')
-        )
-        self.style.map("Action.TButton",
-            background=[("active", "#0098ff")],
-            foreground=[("active", "#ffffff")]
-        )
-
-        # Основные кнопки управления
-        ttk.Button(buttons_frame, 
-                  text="Начать парсинг", 
-                  command=self.start_scraping,
-                  style="Action.TButton").pack(side='left', padx=5)
-
-        ttk.Button(buttons_frame, 
-                  text="Анализ страницы", 
-                  command=self.analyze_site,
-                  style="Action.TButton").pack(side='left', padx=5)
-
-        ttk.Button(buttons_frame, 
-                  text="Сохранить настройки", 
-                  command=self.save_config,
-                  style="Action.TButton").pack(side='left', padx=5)
+        ttk.Checkbutton(options_frame, text="Использовать Selenium", 
+                       variable=self.use_selenium).pack(anchor=tk.W)
+        ttk.Checkbutton(options_frame, text="Обход защиты Cloudflare", 
+                       variable=self.handle_cloudflare).pack(anchor=tk.W)
 
         # Progress bar
-        self.progress = ttk.Progressbar(scraping_frame, mode='determinate')
-        self.progress.pack(fill='x', padx=10, pady=10)
+        self.progress = ttk.Progressbar(main_container, mode='determinate')
+        self.progress.pack(fill=tk.X, pady=10)
 
-        # Data tab
-        data_frame = ttk.Frame(notebook)
-        notebook.add(data_frame, text='Data')
-
-        # Treeview style
-        self.style.configure("Treeview",
-            background="#2d2d2d",
-            foreground="#ffffff",
-            fieldbackground="#2d2d2d",
-            borderwidth=0
-        )
-        self.style.configure("Treeview.Heading",
-            background="#3d3d3d",
-            foreground="#ffffff",
-            borderwidth=0
-        )
-
-        # Treeview for data display
-        self.tree = ttk.Treeview(data_frame, columns=('Name', 'Price', 'Marketplace', 'Created At'), show='headings')
-        self.tree.heading('Name', text='Name')
-        self.tree.heading('Price', text='Price')
-        self.tree.heading('Marketplace', text='Marketplace')
-        self.tree.heading('Created At', text='Created At')
-        self.tree.pack(fill='both', expand=True, padx=10, pady=10)
-
-        # Export buttons
-        export_frame = ttk.Frame(data_frame)
-        export_frame.pack(fill='x', padx=10, pady=10)
-
-        ttk.Button(export_frame, text="Export CSV", command=lambda: self.export_data('csv')).pack(side='left', padx=5)
-        ttk.Button(export_frame, text="Export Excel", command=lambda: self.export_data('excel')).pack(side='left', padx=5)
-        ttk.Button(export_frame, text="Refresh Data", command=self.load_data).pack(side='left', padx=5)
+    def create_button(self, parent, text, command):
+        btn = ttk.Button(parent, text=text, command=command, style="Custom.TButton")
+        btn.pack(side=tk.LEFT, padx=5)
+        return btn
 
     def save_config(self):
         name = self.url_pattern.get().split('/')[2]  # Use domain as name
@@ -338,3 +242,54 @@ class ScraperGUI:
             if self.protection_handler:
                 self.protection_handler.cleanup()
                 self.protection_handler = None
+
+    def create_styled_entry(self, parent, width=50):
+        entry = tk.Entry(parent, width=width,
+                        bg="#2d2d2d",
+                        fg="#ffffff",
+                        insertbackground="#ffffff",
+                        relief="flat",
+                        highlightthickness=1,
+                        highlightbackground="#3d3d3d",
+                        highlightcolor="#007acc")
+        return entry
+
+    def create_styled_text(self, parent, height=5):
+        text = tk.Text(parent, height=height,
+                      bg="#2d2d2d",
+                      fg="#ffffff",
+                      insertbackground="#ffffff",
+                      relief="flat",
+                      highlightthickness=1,
+                      highlightbackground="#3d3d3d",
+                      highlightcolor="#007acc")
+        return text
+
+        # Treeview style
+        self.style.configure("Treeview",
+            background="#2d2d2d",
+            foreground="#ffffff",
+            fieldbackground="#2d2d2d",
+            borderwidth=0
+        )
+        self.style.configure("Treeview.Heading",
+            background="#3d3d3d",
+            foreground="#ffffff",
+            borderwidth=0
+        )
+
+        # Treeview for data display
+        self.tree = ttk.Treeview(data_frame, columns=('Name', 'Price', 'Marketplace', 'Created At'), show='headings')
+        self.tree.heading('Name', text='Name')
+        self.tree.heading('Price', text='Price')
+        self.tree.heading('Marketplace', text='Marketplace')
+        self.tree.heading('Created At', text='Created At')
+        self.tree.pack(fill='both', expand=True, padx=10, pady=10)
+
+        # Export buttons
+        export_frame = ttk.Frame(data_frame)
+        export_frame.pack(fill='x', padx=10, pady=10)
+
+        ttk.Button(export_frame, text="Export CSV", command=lambda: self.export_data('csv')).pack(side='left', padx=5)
+        ttk.Button(export_frame, text="Export Excel", command=lambda: self.export_data('excel')).pack(side='left', padx=5)
+        ttk.Button(export_frame, text="Refresh Data", command=self.load_data).pack(side='left', padx=5)
