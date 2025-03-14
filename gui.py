@@ -7,6 +7,8 @@ from scraper import Scraper
 from database import Database
 from config import ConfigManager
 from utils import export_to_csv, export_to_excel
+from site_analyzer import ElementSelector
+from bot_protection import AdvancedProtectionHandler
 
 class ScraperGUI:
     def __init__(self, root):
@@ -57,6 +59,7 @@ class ScraperGUI:
 
         self.config_manager = ConfigManager()
         self.captcha_api_key = None
+        self.protection_handler = None
         self.create_widgets()
 
         # Apply transparency
@@ -152,6 +155,7 @@ class ScraperGUI:
 
         ttk.Button(buttons_frame, text="Start Scraping", command=self.start_scraping).pack(side='left', padx=5)
         ttk.Button(buttons_frame, text="Save Config", command=self.save_config).pack(side='left', padx=5)
+        ttk.Button(buttons_frame, text="Анализ сайта", command=self.analyze_site).pack(side='left', padx=5)
 
         # Progress bar
         self.progress = ttk.Progressbar(scraping_frame, mode='determinate')
@@ -276,3 +280,37 @@ class ScraperGUI:
                 else:
                     export_to_excel(products, filename)
                 messagebox.showinfo("Success", f"Data exported to {filename}")
+
+    def analyze_site(self):
+        url = self.url_pattern.get()
+        if not url:
+            messagebox.showerror("Error", "Please enter URL Pattern first")
+            return
+
+        try:
+            if not self.protection_handler:
+                self.protection_handler = AdvancedProtectionHandler()
+
+            driver = self.protection_handler.init_browser(headless=False)
+            analyzer = ElementSelector(url, driver)
+
+            # Load the page
+            driver.get(url)
+
+            # Get selectors through visual selection
+            selectors = analyzer.analyze_page()
+
+            # Update selector entries
+            for field, selector in selectors.items():
+                if field in self.selector_entries:
+                    self.selector_entries[field].delete(0, tk.END)
+                    self.selector_entries[field].insert(0, selector)
+
+            messagebox.showinfo("Success", "Site analysis completed successfully!")
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to analyze site: {str(e)}")
+        finally:
+            if self.protection_handler:
+                self.protection_handler.cleanup()
+                self.protection_handler = None
