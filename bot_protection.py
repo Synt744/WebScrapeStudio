@@ -59,14 +59,31 @@ class AdvancedProtectionHandler:
             logger.info(f"Инициализация браузера с binary_location: {self.chrome_binary}")
 
             options = uc.ChromeOptions()
-            if headless:
-                options.add_argument('--headless')
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-gpu')
-            options.add_argument('--disable-dev-shm-usage')
             options.binary_location = self.chrome_binary
 
-            self.driver = uc.Chrome(options=options)
+            # Replit-specific options
+            options.add_argument('--no-sandbox')
+            options.add_argument('--disable-dev-shm-usage')
+            options.add_argument('--disable-gpu')
+            options.add_argument('--disable-software-rasterizer')
+            options.add_argument('--disable-features=VizDisplayCompositor')
+            options.add_argument('--disable-features=IsolateOrigins,site-per-process')
+
+            if headless:
+                options.add_argument('--headless=new')
+                options.add_argument('--disable-extensions')
+
+            # Create ChromeDriver with custom options
+            driver_executable_path = os.path.join(os.path.expanduser('~'), '.local/share/undetected_chromedriver')
+            if not os.path.exists(driver_executable_path):
+                os.makedirs(driver_executable_path, exist_ok=True)
+
+            self.driver = uc.Chrome(
+                options=options,
+                driver_executable_path=driver_executable_path,
+                browser_executable_path=self.chrome_binary
+            )
+
             logger.info("Браузер успешно инициализирован")
             return self.driver
 
