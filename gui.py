@@ -13,78 +13,159 @@ class ScraperGUI:
         self.root = root
         self.root.title("Marketplace Scraper")
         self.root.geometry("800x600")
-        
+
+        # Set dark theme
+        self.style = ttk.Style()
+        self.style.theme_use('clam')  # Using clam as base theme
+
+        # Configure dark theme colors
+        self.style.configure(".",
+            background="#1e1e1e",
+            foreground="#ffffff",
+            fieldbackground="#2d2d2d",
+            troughcolor="#2d2d2d",
+            selectbackground="#007acc",
+            selectforeground="#ffffff"
+        )
+
+        # Configure specific widget styles
+        self.style.configure("TFrame", background="#1e1e1e")
+        self.style.configure("TNotebook", background="#1e1e1e", borderwidth=0)
+        self.style.configure("TNotebook.Tab",
+            background="#2d2d2d",
+            foreground="#ffffff",
+            padding=[10, 5],
+            borderwidth=0
+        )
+        self.style.map("TNotebook.Tab",
+            background=[("selected", "#007acc")],
+            foreground=[("selected", "#ffffff")]
+        )
+        self.style.configure("TButton",
+            background="#007acc",
+            foreground="#ffffff",
+            padding=[10, 5],
+            borderwidth=0
+        )
+        self.style.map("TButton",
+            background=[("active", "#0098ff")],
+            foreground=[("active", "#ffffff")]
+        )
+
+        # Configure root window
+        self.root.configure(bg="#1e1e1e")
+
         self.config_manager = ConfigManager()
         self.create_widgets()
+
+        # Apply transparency
+        self.root.attributes('-alpha', 0.95)
+
+    def create_styled_entry(self, parent, width=50):
+        entry = tk.Entry(parent, width=width,
+                        bg="#2d2d2d",
+                        fg="#ffffff",
+                        insertbackground="#ffffff",
+                        relief="flat",
+                        highlightthickness=1,
+                        highlightbackground="#3d3d3d",
+                        highlightcolor="#007acc")
+        return entry
+
+    def create_styled_text(self, parent, height=5):
+        text = tk.Text(parent, height=height,
+                      bg="#2d2d2d",
+                      fg="#ffffff",
+                      insertbackground="#ffffff",
+                      relief="flat",
+                      highlightthickness=1,
+                      highlightbackground="#3d3d3d",
+                      highlightcolor="#007acc")
+        return text
 
     def create_widgets(self):
         # Notebook for tabs
         notebook = ttk.Notebook(self.root)
-        notebook.pack(expand=True, fill='both', padx=5, pady=5)
+        notebook.pack(expand=True, fill='both', padx=10, pady=10)
 
         # Scraping tab
         scraping_frame = ttk.Frame(notebook)
         notebook.add(scraping_frame, text='Scraping')
-        
+
         # Configuration section
-        ttk.Label(scraping_frame, text="Marketplace Configuration").pack(pady=5)
-        
+        title_label = ttk.Label(scraping_frame, text="Marketplace Configuration",
+                              font=('Segoe UI', 12, 'bold'))
+        title_label.pack(pady=10)
+
         config_frame = ttk.Frame(scraping_frame)
-        config_frame.pack(fill='x', padx=5)
-        
+        config_frame.pack(fill='x', padx=10)
+
         ttk.Label(config_frame, text="URL Pattern:").pack()
-        self.url_pattern = tk.Entry(config_frame, width=50)
-        self.url_pattern.pack()
-        
+        self.url_pattern = self.create_styled_entry(config_frame)
+        self.url_pattern.pack(pady=(0, 10))
+
         ttk.Label(config_frame, text="URLs (one per line):").pack()
-        self.urls_text = tk.Text(config_frame, height=5)
-        self.urls_text.pack(fill='x')
-        
+        self.urls_text = self.create_styled_text(config_frame)
+        self.urls_text.pack(fill='x', pady=(0, 10))
+
         # Selectors frame
-        selectors_frame = ttk.LabelFrame(scraping_frame, text="Selectors")
-        selectors_frame.pack(fill='x', padx=5, pady=5)
-        
+        selectors_frame = ttk.LabelFrame(scraping_frame, text="Selectors", padding=10)
+        selectors_frame.pack(fill='x', padx=10, pady=5)
+
         self.selector_entries = {}
         for field in ['name', 'price', 'description']:
             ttk.Label(selectors_frame, text=f"{field.title()} Selector:").pack()
-            entry = tk.Entry(selectors_frame, width=50)
-            entry.pack()
+            entry = self.create_styled_entry(selectors_frame)
+            entry.pack(pady=(0, 10))
             self.selector_entries[field] = entry
-        
+
         # Options frame
-        options_frame = ttk.LabelFrame(scraping_frame, text="Options")
-        options_frame.pack(fill='x', padx=5, pady=5)
-        
+        options_frame = ttk.LabelFrame(scraping_frame, text="Options", padding=10)
+        options_frame.pack(fill='x', padx=10, pady=5)
+
         self.use_selenium = tk.BooleanVar()
         ttk.Checkbutton(options_frame, text="Use Selenium", variable=self.use_selenium).pack()
-        
+
         # Control buttons
         buttons_frame = ttk.Frame(scraping_frame)
-        buttons_frame.pack(fill='x', padx=5, pady=5)
-        
+        buttons_frame.pack(fill='x', padx=10, pady=10)
+
         ttk.Button(buttons_frame, text="Start Scraping", command=self.start_scraping).pack(side='left', padx=5)
         ttk.Button(buttons_frame, text="Save Config", command=self.save_config).pack(side='left', padx=5)
-        
+
         # Progress bar
         self.progress = ttk.Progressbar(scraping_frame, mode='determinate')
-        self.progress.pack(fill='x', padx=5, pady=5)
-        
+        self.progress.pack(fill='x', padx=10, pady=10)
+
         # Data tab
         data_frame = ttk.Frame(notebook)
         notebook.add(data_frame, text='Data')
-        
+
+        # Treeview style
+        self.style.configure("Treeview",
+            background="#2d2d2d",
+            foreground="#ffffff",
+            fieldbackground="#2d2d2d",
+            borderwidth=0
+        )
+        self.style.configure("Treeview.Heading",
+            background="#3d3d3d",
+            foreground="#ffffff",
+            borderwidth=0
+        )
+
         # Treeview for data display
         self.tree = ttk.Treeview(data_frame, columns=('Name', 'Price', 'Marketplace', 'Created At'), show='headings')
         self.tree.heading('Name', text='Name')
         self.tree.heading('Price', text='Price')
         self.tree.heading('Marketplace', text='Marketplace')
         self.tree.heading('Created At', text='Created At')
-        self.tree.pack(fill='both', expand=True)
-        
+        self.tree.pack(fill='both', expand=True, padx=10, pady=10)
+
         # Export buttons
         export_frame = ttk.Frame(data_frame)
-        export_frame.pack(fill='x', padx=5, pady=5)
-        
+        export_frame.pack(fill='x', padx=10, pady=10)
+
         ttk.Button(export_frame, text="Export CSV", command=lambda: self.export_data('csv')).pack(side='left', padx=5)
         ttk.Button(export_frame, text="Export Excel", command=lambda: self.export_data('excel')).pack(side='left', padx=5)
         ttk.Button(export_frame, text="Refresh Data", command=self.load_data).pack(side='left', padx=5)
@@ -104,13 +185,13 @@ class ScraperGUI:
         if not urls:
             messagebox.showerror("Error", "Please enter URLs to scrape")
             return
-            
+
         config = ScrapingConfig(
             url_pattern=self.url_pattern.get(),
             selectors={field: entry.get() for field, entry in self.selector_entries.items()},
             use_selenium=self.use_selenium.get()
         )
-        
+
         def scrape_thread():
             scraper = Scraper(config)
             try:
@@ -123,7 +204,7 @@ class ScraperGUI:
                 self.root.after(0, lambda: messagebox.showerror("Error", f"Scraping failed: {str(e)}"))
             finally:
                 self.root.after(0, self.reset_progress)
-        
+
         threading.Thread(target=scrape_thread, daemon=True).start()
 
     def update_progress(self, value):
@@ -156,13 +237,13 @@ class ScraperGUI:
             if not products:
                 messagebox.showwarning("Warning", "No data to export")
                 return
-                
+
             filetypes = [('CSV files', '*.csv')] if format_type == 'csv' else [('Excel files', '*.xlsx')]
             filename = filedialog.asksaveasfilename(
                 defaultextension=f".{format_type}",
                 filetypes=filetypes
             )
-            
+
             if filename:
                 if format_type == 'csv':
                     export_to_csv(products, filename)
