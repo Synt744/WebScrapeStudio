@@ -476,7 +476,9 @@ dependencies = [
     { name = "pandas" },
     { name = "requests" },
     { name = "selenium" },
+    { name = "setuptools" },
     { name = "trafilatura" },
+    { name = "twocaptcha" },
     { name = "undetected-chromedriver" },
 ]
 
@@ -487,7 +489,9 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "selenium", specifier = ">=4.29.0" },
+    { name = "setuptools", specifier = ">=76.0.0" },
     { name = "trafilatura", specifier = ">=2.0.0" },
+    { name = "twocaptcha", specifier = ">=0.0.1" },
     { name = "undetected-chromedriver", specifier = ">=3.5.5" },
 ]
 
@@ -521,6 +525,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/1c/ab/09de87ef66a10a7d40417d4e93449eb892154d2dc6385187aa9298a2c09d/selenium-4.29.0.tar.gz", hash = "sha256:3a62f7ec33e669364a6c0562a701deb69745b569c50d55f1a912bf8eb33358ba", size = 985717 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2f/a6/fc66ea71ec0769f72abdf15cb9ec9269517abe68a160839383ddff7478f1/selenium-4.29.0-py3-none-any.whl", hash = "sha256:ce5d26f1ddc1111641113653af33694c13947dd36c2df09cdd33f554351d372e", size = 9536642 },
+]
+
+[[package]]
+name = "setuptools"
+version = "76.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/32/d2/7b171caf085ba0d40d8391f54e1c75a1cda9255f542becf84575cfd8a732/setuptools-76.0.0.tar.gz", hash = "sha256:43b4ee60e10b0d0ee98ad11918e114c70701bc6051662a9a675a0496c1a158f4", size = 1349387 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/37/66/d2d7e6ad554f3a7c7297c3f8ef6e22643ad3d35ef5c63bf488bc89f32f31/setuptools-76.0.0-py3-none-any.whl", hash = "sha256:199466a166ff664970d0ee145839f5582cb9bca7a0a3a2e795b6a9cb2308e9c6", size = 1236106 },
 ]
 
 [[package]]
@@ -616,6 +629,15 @@ sdist = { url = "https://files.pythonhosted.org/packages/d1/3c/8b4358e81f2f2cfe7
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/19/eb640a397bba49ba49ef9dbe2e7e5c04202ba045b6ce2ec36e9cadc51e04/trio_websocket-0.12.2-py3-none-any.whl", hash = "sha256:df605665f1db533f4a386c94525870851096a223adcb97f72a07e8b4beba45b6", size = 21221 },
 ]
+
+[[package]]
+name = "twocaptcha"
+version = "0.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fe/2a/423a536af707f4f8938176ed260e39f0612f846ee1d053b087a66ac2b961/TwoCaptcha-0.0.1.tar.gz", hash = "sha256:fd04127de71ca4bd31c22add84a5bcb7c683cf9ee5bf503ca14a8f372ac76a0e", size = 2943 }
 
 [[package]]
 name = "typing-extensions"

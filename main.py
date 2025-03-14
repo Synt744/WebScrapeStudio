@@ -26,40 +26,52 @@ def check_dependencies():
         subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
 
 def check_chrome():
-    """Проверка наличия Chrome"""
+    """Проверка наличия Chromium/Chrome"""
     if platform.system() == 'Windows':
         chrome_paths = [
             os.path.expandvars(r"%ProgramFiles%\Google\Chrome\Application\chrome.exe"),
             os.path.expandvars(r"%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"),
             os.path.expandvars(r"%LocalAppData%\Google\Chrome\Application\chrome.exe")
         ]
-    else:
+    else:  # Linux/Unix
         chrome_paths = [
+            '/usr/bin/chromium',
+            '/usr/bin/chromium-browser',
             '/usr/bin/google-chrome',
-            '/usr/bin/google-chrome-stable',
-            '/usr/bin/chrome',
-            '/usr/bin/chromium-browser'
+            '/usr/bin/google-chrome-stable'
         ]
 
     chrome_installed = any(os.path.exists(path) for path in chrome_paths)
     if not chrome_installed:
-        print("ВНИМАНИЕ: Google Chrome не установлен!")
-        print("Пожалуйста, установите Chrome для корректной работы программы.")
-        print("Ссылка для загрузки: https://www.google.com/chrome/")
-        sys.exit(1)
+        print("ВНИМАНИЕ: Chromium/Google Chrome не установлен!")
+        print("Установка системных зависимостей...")
+        if platform.system() == 'Windows':
+            print("Пожалуйста, установите Chrome для работы программы.")
+            print("Ссылка для загрузки: https://www.google.com/chrome/")
+            sys.exit(1)
+        else:
+            try:
+                # На Linux попробуем установить через пакетный менеджер
+                subprocess.check_call(['which', 'chromium'])
+            except subprocess.CalledProcessError:
+                print("Не удалось найти Chromium. Пожалуйста, установите его вручную.")
+                sys.exit(1)
 
 def main():
     try:
         # Проверка зависимостей при запуске
+        print("Проверка зависимостей...")
         check_dependencies()
         check_chrome()
 
+        print("Запуск приложения...")
         # Запуск основного приложения
         root = tk.Tk()
         app = ScraperGUI(root)
         root.mainloop()
     except Exception as e:
         print(f"Ошибка при запуске программы: {str(e)}")
+        print("Подробности ошибки:", str(sys.exc_info()))
         input("Нажмите Enter для выхода...")
         sys.exit(1)
 

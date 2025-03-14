@@ -5,7 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import os
-import shutil
+import platform
 
 class AdvancedProtectionHandler:
     def __init__(self, api_key=None):
@@ -14,14 +14,13 @@ class AdvancedProtectionHandler:
         """
         self.solver = TwoCaptcha(api_key) if api_key else None
         self.driver = None
-        # Find Chrome binary location
         self.chrome_binary = self._get_chrome_binary()
 
     def _get_chrome_binary(self):
         """
-        Find Chrome binary location based on the operating system
+        Find Chrome/Chromium binary location based on the operating system
         """
-        if os.name == 'nt':  # Windows
+        if platform.system() == 'Windows':
             paths = [
                 os.path.expandvars(r"%ProgramFiles%\Google\Chrome\Application\chrome.exe"),
                 os.path.expandvars(r"%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"),
@@ -29,24 +28,25 @@ class AdvancedProtectionHandler:
             ]
         else:  # Linux/Unix
             paths = [
+                '/usr/bin/chromium',
+                '/usr/bin/chromium-browser',
                 '/usr/bin/google-chrome',
-                '/usr/bin/google-chrome-stable',
-                '/usr/bin/chrome',
-                '/usr/bin/chromium-browser'
+                '/usr/bin/google-chrome-stable'
             ]
 
         for path in paths:
             if os.path.exists(path):
+                print(f"Found browser at: {path}")
                 return path
 
-        # If Chrome is not found, raise a more descriptive error
-        raise Exception("Google Chrome не установлен. Пожалуйста, установите Chrome для работы программы.")
+        raise Exception("Chrome/Chromium не найден. Пожалуйста, установите браузер для работы программы.")
 
     def init_browser(self, headless=True):
         """
         Initialize undetected-chromedriver for Cloudflare bypass
         """
         try:
+            print(f"Инициализация браузера с binary_location: {self.chrome_binary}")
             options = uc.ChromeOptions()
             if headless:
                 options.add_argument('--headless')
@@ -57,7 +57,8 @@ class AdvancedProtectionHandler:
             self.driver = uc.Chrome(options=options)
             return self.driver
         except Exception as e:
-            raise Exception(f"Ошибка при инициализации браузера: {str(e)}")
+            print(f"Ошибка при инициализации браузера: {str(e)}")
+            raise Exception(f"Не удалось запустить браузер. Убедитесь, что Chrome/Chromium установлен корректно: {str(e)}")
 
     def solve_captcha(self, site_key, page_url):
         """
