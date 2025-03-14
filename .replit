@@ -38,5 +38,13 @@ mode = "sequential"
 task = "shell.exec"
 args = "python build.py"
 
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pip install pyinstaller"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python build.py"
+
 [deployment]
 run = ["sh", "-c", "python main.py"]
